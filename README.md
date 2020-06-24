@@ -1,5 +1,5 @@
 # Implicit Neural Representations with Periodic Activation Functions
-### [Project Page](https://vsitzmann.github.io/siren) | [Paper](https://arxiv.org/abs/2006.09661) | [Data]()
+### [Project Page](https://vsitzmann.github.io/siren) | [Paper](https://arxiv.org/abs/2006.09661) | [Data](https://drive.google.com/drive/folders/1_iq__37-hw7FJOEUK1tX7mdp8SKB368K?usp=sharing)
 [Vincent Sitzmann](https://vsitzmann.github.io/)\*,
 [Julien N. P. Martel](http://www.jmartel.net)\*,
 [Alexander W. Bergman](http://alexanderbergman7.github.io),
