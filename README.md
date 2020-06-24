@@ -15,7 +15,7 @@ This is the official implementation of the paper "Implicit Neural Representation
 
 
 ## Get started
-If you only want to experiment with Siren, we have written a colab that doesn't require installing anything,
+If you only want to experiment with Siren, we have written a [Colab](https://colab.research.google.com/github/vsitzmann/siren/blob/master/explore_siren.ipynb) that doesn't require installing anything,
 and goes through a few other interesting properties of Siren as well! 
 
 If you want to reproduce all the results (including the baselines) shown in the paper, the videos, point clouds, and 
