@@ -1,5 +1,7 @@
 # Implicit Neural Representations with Periodic Activation Functions
 ### [Project Page](https://vsitzmann.github.io/siren) | [Paper](https://arxiv.org/abs/2006.09661) | [Data](https://drive.google.com/drive/folders/1_iq__37-hw7FJOEUK1tX7mdp8SKB368K?usp=sharing)
+[![Explore Siren in Colab](https://colab.research.google.com/assets/colab-badge.svg)](https://colab.research.google.com/github/vsitzmann/siren/blob/master/explore_siren.ipynb)<br>
+
 [Vincent Sitzmann](https://vsitzmann.github.io/)\*,
 [Julien N. P. Martel](http://www.jmartel.net)\*,
 [Alexander W. Bergman](http://alexanderbergman7.github.io),
@@ -9,15 +11,21 @@ Stanford University, \*denotes equal contribution
 
 This is the official implementation of the paper "Implicit Neural Representations with Periodic Activation Functions".
 
-[![Explore Siren in Colab](https://colab.research.google.com/assets/colab-badge.svg)](https://colab.research.google.com/github/vsitzmann/siren/blob/master/explore_siren.ipynb)<br>
-
 [![siren_video](https://img.youtube.com/vi/Q2fLWGBeaiI/0.jpg)](https://www.youtube.com/watch?v=Q2fLWGBeaiI)
 
 
-## Get started
-If you only want to experiment with Siren, we have written a [Colab](https://colab.research.google.com/github/vsitzmann/siren/blob/master/explore_siren.ipynb) that doesn't require installing anything,
-and goes through a few other interesting properties of Siren as well! 
+## Google Colab
+If you want to experiment with Siren, we have written a [Colab](https://colab.research.google.com/github/vsitzmann/siren/blob/master/explore_siren.ipynb).
+It's quite comprehensive and comes with a no-frills, drop-in implementation of SIREN. It doesn't require 
+installing anything, and goes through the following experiments / SIREN properties:
+* Fitting an image
+* Fitting an audio signal
+* Solving Poisson's equation
+* Initialization scheme & distribution of activations
+* Distribution of activations is shift-invariant
+* Periodicity & behavior outside of the training range. 
 
+## Get started
 If you want to reproduce all the results (including the baselines) shown in the paper, the videos, point clouds, and 
 audio files can be found [here](https://drive.google.com/drive/folders/1_iq__37-hw7FJOEUK1tX7mdp8SKB368K?usp=sharing).
 
