@@ -22,10 +22,10 @@ p.add_argument('--experiment_name', type=str, required=True,
 
 # General training options
 p.add_argument('--batch_size', type=int, default=1)
-p.add_argument('--lr', type=float, default=1e-4, help='learning rate. default=5e-5')
+p.add_argument('--lr', type=float, default=1e-4, help='learning rate. default=1e-4')
 p.add_argument('--num_epochs', type=int, default=10000,
                help='Number of epochs to train for.')
-p.add_argument('--k1', type=float, default=1, help='weight on variational prior')
+p.add_argument('--k1', type=float, default=1, help='weight on prior')
 p.add_argument('--sparsity', type=float, default=0.1, help='percentage of pixels filled')
 p.add_argument('--prior', type=str, default=None, help='prior')
 p.add_argument('--downsample', action='store_true', default=False, help='use image downsampling kernel')

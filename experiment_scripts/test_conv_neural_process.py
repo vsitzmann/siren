@@ -45,13 +45,15 @@ else:
 
 assert opt.dataset == 'celeba_32x32'
 img_dataset_test = dataio.CelebA(split='test', downsampled=True)
-coord_dataset_test = dataio.Implicit2DWrapper(img_dataset_test, sidelength=(32, 32), test_sparsity=200,
-                                              generalization_mode='conv_cnp_test')
+coord_dataset_test = dataio.Implicit2DWrapper(img_dataset_test, sidelength=(32, 32))
+generalization_dataset_test = dataio.ImageGeneralizationWrapper(coord_dataset_test, test_sparsity=200,
+                                                                generalization_mode='conv_cnp_test')
 image_resolution = (32, 32)
 
 img_dataset_train = dataio.CelebA(split='train', downsampled=True)
-coord_dataset_train = dataio.Implicit2DWrapper(img_dataset_train, sidelength=(32, 32), test_sparsity=200,
-                                               generalization_mode='conv_cnp_test')
+coord_dataset_train = dataio.Implicit2DWrapper(img_dataset_train, sidelength=(32, 32))
+generalization_dataset_train = dataio.ImageGeneralizationWrapper(coord_dataset_train, test_sparsity=200,
+                                                                 generalization_mode='conv_cnp_test')
 
 # Define the model.
 model = meta_modules.ConvolutionalNeuralProcessImplicit2DHypernet(in_features=img_dataset_test.img_channels,
@@ -70,7 +72,7 @@ model.load_state_dict(torch.load(opt.checkpoint_path))
 
 # First experiment: Upsample training image
 model_input = {'coords':dataio.get_mgrid(image_resolution)[None,:].cuda(),
-               'img_sparse':coord_dataset_train[0][0]['img_sparse'].unsqueeze(0).cuda()}
+               'img_sparse':generalization_dataset_train[0][0]['img_sparse'].unsqueeze(0).cuda()}
 model_output = model(model_input)
 
 out_img = dataio.lin2img(model_output['model_out'], image_resolution).squeeze().permute(1,2,0).detach().cpu().numpy()
@@ -82,7 +84,7 @@ imageio.imwrite(os.path.join(root_path, 'upsampled_train.png'), out_img)
 
 # Second experiment: sample larger range
 model_input = {'coords':dataio.get_mgrid(image_resolution)[None,:].cuda()*5,
-               'img_sparse':coord_dataset_train[0][0]['img_sparse'].unsqueeze(0).cuda()}
+               'img_sparse':generalization_dataset_train[0][0]['img_sparse'].unsqueeze(0).cuda()}
 model_output = model(model_input)
 
 out_img = dataio.lin2img(model_output['model_out'], image_resolution).squeeze().permute(1,2,0).detach().cpu().numpy()
@@ -95,9 +97,9 @@ imageio.imwrite(os.path.join(root_path, 'outside_range.png'), out_img)
 # Third experiment: interpolate between latent codes
 idx1, idx2 = 57, 181
 model_input_1 = {'coords': dataio.get_mgrid(image_resolution)[None, :].cuda(),
-                 'img_sparse': coord_dataset_train[idx1][0]['img_sparse'].unsqueeze(0).cuda()}
+                 'img_sparse': generalization_dataset_train[idx1][0]['img_sparse'].unsqueeze(0).cuda()}
 model_input_2 = {'coords': dataio.get_mgrid(image_resolution)[None, :].cuda(),
-                 'img_sparse': coord_dataset_train[idx2][0]['img_sparse'].unsqueeze(0).cuda()}
+                 'img_sparse': generalization_dataset_train[idx2][0]['img_sparse'].unsqueeze(0).cuda()}
 
 embedding_1 = model.get_hypo_net_weights(model_input_1)[1]
 embedding_2 = model.get_hypo_net_weights(model_input_2)[1]
@@ -167,11 +169,10 @@ def getTestMSE(dataloader, subdir):
 
     return MSEs
 
-coord_dataset = coord_dataset_test
 sparsities = [10, 100, 1000, 'full', 'half']
 for sparsity in sparsities:
-    coord_dataset.update_test_sparsity(sparsity)
-    dataloader = DataLoader(coord_dataset, shuffle=False, batch_size=1, pin_memory=True, num_workers=0)
+    generalization_dataset_test.update_test_sparsity(sparsity)
+    dataloader = DataLoader(generalization_dataset_test, shuffle=False, batch_size=1, pin_memory=True, num_workers=0)
     MSE = getTestMSE(dataloader, 'test_'+str(sparsity)+'_pixels')
     np.save(os.path.join(root_path, 'MSE_'+str(sparsity)+'_context.npy'), MSE)
     print(np.mean(MSE))
