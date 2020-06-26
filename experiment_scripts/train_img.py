@@ -18,7 +18,7 @@ p.add_argument('--experiment_name', type=str, required=True,
 
 # General training options
 p.add_argument('--batch_size', type=int, default=1)
-p.add_argument('--lr', type=float, default=1e-4, help='learning rate. default=5e-5')
+p.add_argument('--lr', type=float, default=1e-4, help='learning rate. default=1e-4')
 p.add_argument('--num_epochs', type=int, default=10000,
                help='Number of epochs to train for.')
 

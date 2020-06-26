@@ -20,11 +20,11 @@ p.add_argument('--experiment_name', type=str, required=True,
 # General training options
 p.add_argument('--batch_size', type=int, default=100)
 p.add_argument('--lr', type=float, default=5e-5, help='learning rate. default=5e-5')
-p.add_argument('--num_epochs', type=int, default=20001,
+p.add_argument('--num_epochs', type=int, default=401,
                help='Number of epochs to train for.')
-p.add_argument('--kl_weight', type=float, default=0,
+p.add_argument('--kl_weight', type=float, default=1e-1,
                help='Weight for l2 loss term on code vectors z (lambda_latent in paper).')
-p.add_argument('--fw_weight', type=float, default=0,
+p.add_argument('--fw_weight', type=float, default=1e2,
                help='Weight for the l2 loss term on the weights of the sine network')
 p.add_argument('--train_sparsity_range', type=int, nargs='+', default=[10, 200],
                help='Two integers: lowest number of sparse pixels sampled followed by highest number of sparse'
@@ -51,11 +51,13 @@ if opt.conv_encoder: gmode = 'conv_cnp'
 else: gmode = 'cnp'
 
 img_dataset = dataio.CelebA(split='train', downsampled=True)
-coord_dataset = dataio.Implicit2DWrapper(img_dataset, sidelength=(32, 32),
-                                         train_sparsity_range=opt.train_sparsity_range, generalization_mode=gmode)
+coord_dataset = dataio.Implicit2DWrapper(img_dataset, sidelength=(32, 32))
+generalization_dataset = dataio.ImageGeneralizationWrapper(coord_dataset,
+                                                           train_sparsity_range=opt.train_sparsity_range,
+                                                           generalization_mode=gmode)
 image_resolution = (32, 32)
 
-dataloader = DataLoader(coord_dataset, shuffle=True, batch_size=opt.batch_size, pin_memory=True, num_workers=0)
+dataloader = DataLoader(generalization_dataset, shuffle=True, batch_size=opt.batch_size, pin_memory=True, num_workers=0)
 
 if opt.conv_encoder:
     model = meta_modules.ConvolutionalNeuralProcessImplicit2DHypernet(in_features=img_dataset.img_channels,

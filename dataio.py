@@ -561,7 +561,7 @@ class AudioFile(Dataset):
     def __init__(self, filename):
         super().__init__()
         self.rate, self.data = wavfile.read(filename)
-        if self.data.shape[1] == 2:
+        if len(self.data.shape) > 1 and self.data.shape[1] == 2:
             self.data = np.mean(self.data, axis=1)
         self.data = self.data.astype(np.float32)
         self.file_length = len(self.data)
@@ -575,8 +575,7 @@ class AudioFile(Dataset):
 
 
 class Implicit2DWrapper(torch.utils.data.Dataset):
-    def __init__(self, dataset, sidelength=None, compute_diff=None, test_sparsity=None, train_sparsity_range=(10, 200),
-                 generalization_mode=None):
+    def __init__(self, dataset, sidelength=None, compute_diff=None):
 
         if isinstance(sidelength, int):
             sidelength = (sidelength, sidelength)
@@ -592,13 +591,105 @@ class Implicit2DWrapper(torch.utils.data.Dataset):
         self.dataset = dataset
         self.mgrid = get_mgrid(sidelength)
 
+    def __len__(self):
+        return len(self.dataset)
+
+    def __getitem__(self, idx):
+        img = self.transform(self.dataset[idx])
+
+        if self.compute_diff == 'gradients':
+            img *= 1e1
+            gradx = scipy.ndimage.sobel(img.numpy(), axis=1).squeeze(0)[..., None]
+            grady = scipy.ndimage.sobel(img.numpy(), axis=2).squeeze(0)[..., None]
+        elif self.compute_diff == 'laplacian':
+            img *= 1e4
+            laplace = scipy.ndimage.laplace(img.numpy()).squeeze(0)[..., None]
+        elif self.compute_diff == 'all':
+            gradx = scipy.ndimage.sobel(img.numpy(), axis=1).squeeze(0)[..., None]
+            grady = scipy.ndimage.sobel(img.numpy(), axis=2).squeeze(0)[..., None]
+            laplace = scipy.ndimage.laplace(img.numpy()).squeeze(0)[..., None]
+
+        img = img.permute(1, 2, 0).view(-1, self.dataset.img_channels)
+
+        in_dict = {'idx': idx, 'coords': self.mgrid}
+        gt_dict = {'img': img}
+
+        if self.compute_diff == 'gradients':
+            gradients = torch.cat((torch.from_numpy(gradx).reshape(-1, 1),
+                                   torch.from_numpy(grady).reshape(-1, 1)),
+                                  dim=-1)
+            gt_dict.update({'gradients': gradients})
+
+        elif self.compute_diff == 'laplacian':
+            gt_dict.update({'laplace': torch.from_numpy(laplace).view(-1, 1)})
+
+        elif self.compute_diff == 'all':
+            gradients = torch.cat((torch.from_numpy(gradx).reshape(-1, 1),
+                                   torch.from_numpy(grady).reshape(-1, 1)),
+                                  dim=-1)
+            gt_dict.update({'gradients': gradients})
+            gt_dict.update({'laplace': torch.from_numpy(laplace).view(-1, 1)})
+
+        return in_dict, gt_dict
+
+    def get_item_small(self, idx):
+        img = self.transform(self.dataset[idx])
+        spatial_img = img.clone()
+        img = img.permute(1, 2, 0).view(-1, self.dataset.img_channels)
+
+        gt_dict = {'img': img}
+
+        return spatial_img, img, gt_dict
+
+
+class Implicit3DWrapper(torch.utils.data.Dataset):
+    def __init__(self, dataset, sidelength=None, sample_fraction=1.):
+
+        if isinstance(sidelength, int):
+            sidelength = 3 * (sidelength,)
+
+        self.dataset = dataset
+        self.mgrid = get_mgrid(sidelength, dim=3)
+        data = (torch.from_numpy(self.dataset[0]) - 0.5) / 0.5
+        self.data = data.view(-1, self.dataset.channels)
+        self.sample_fraction = sample_fraction
+        self.N_samples = int(self.sample_fraction * self.mgrid.shape[0])
+
+    def __len__(self):
+        return len(self.dataset)
+
+    def __getitem__(self, idx):
+        if self.sample_fraction < 1.:
+            coord_idx = torch.randint(0, self.data.shape[0], (self.N_samples,))
+            data = self.data[coord_idx, :]
+            coords = self.mgrid[coord_idx, :]
+        else:
+            coords = self.mgrid
+            data = self.data
+
+        in_dict = {'idx': idx, 'coords': coords}
+        gt_dict = {'img': data}
+
+        return in_dict, gt_dict
+
+
+class ImageGeneralizationWrapper(torch.utils.data.Dataset):
+    def __init__(self, dataset, test_sparsity=None, train_sparsity_range=(10, 200), generalization_mode=None):
+        self.dataset = dataset
+        self.sidelength = dataset.sidelength
+        self.mgrid = dataset.mgrid
         self.test_sparsity = test_sparsity
         self.train_sparsity_range = train_sparsity_range
         self.generalization_mode = generalization_mode
 
+    def __len__(self):
+        return len(self.dataset)
+
+    # update the sparsity of the images used in testing
     def update_test_sparsity(self, test_sparsity):
         self.test_sparsity = test_sparsity
 
+    # generate the input dictionary based on the type of model used for generalization
     def get_generalization_in_dict(self, spatial_img, img, idx):
         # case where we use the convolutional encoder for generalization, either testing or training
         if self.generalization_mode == 'conv_cnp' or self.generalization_mode == 'conv_cnp_test':
@@ -647,82 +738,11 @@ class Implicit2DWrapper(torch.utils.data.Dataset):
 
         return in_dict
 
-    def __len__(self):
-        return len(self.dataset)
-
     def __getitem__(self, idx):
-        img = self.transform(self.dataset[idx])
-
-        if self.compute_diff == 'gradients':
-            img *= 1e1
-            gradx = scipy.ndimage.sobel(img.numpy(), axis=1).squeeze(0)[..., None]
-            grady = scipy.ndimage.sobel(img.numpy(), axis=2).squeeze(0)[..., None]
-        elif self.compute_diff == 'laplacian':
-            img *= 1e4
-            laplace = scipy.ndimage.laplace(img.numpy()).squeeze(0)[..., None]
-        elif self.compute_diff == 'all':
-            gradx = scipy.ndimage.sobel(img.numpy(), axis=1).squeeze(0)[..., None]
-            grady = scipy.ndimage.sobel(img.numpy(), axis=2).squeeze(0)[..., None]
-            laplace = scipy.ndimage.laplace(img.numpy()).squeeze(0)[..., None]
-
-        spatial_img = img.clone()
-        img = img.permute(1, 2, 0).view(-1, self.dataset.img_channels)
-
-        if self.generalization_mode is not None:
-            in_dict = self.get_generalization_in_dict(spatial_img, img, idx)
-        else:
-            in_dict = {'idx': idx, 'coords': self.mgrid}
-
-        gt_dict = {'img': img}
-
-        if self.compute_diff == 'gradients':
-            gradients = torch.cat((torch.from_numpy(gradx).reshape(-1, 1),
-                                   torch.from_numpy(grady).reshape(-1, 1)),
-                                  dim=-1)
-            gt_dict.update({'gradients': gradients})
-
-        elif self.compute_diff == 'laplacian':
-            gt_dict.update({'laplace': torch.from_numpy(laplace).view(-1, 1)})
-
-        elif self.compute_diff == 'all':
-            gradients = torch.cat((torch.from_numpy(gradx).reshape(-1, 1),
-                                   torch.from_numpy(grady).reshape(-1, 1)),
-                                  dim=-1)
-            gt_dict.update({'gradients': gradients})
-            gt_dict.update({'laplace': torch.from_numpy(laplace).view(-1, 1)})
-
+        spatial_img, img, gt_dict = self.dataset.get_item_small(idx)
+        in_dict = self.get_generalization_in_dict(spatial_img, img, idx)
         return in_dict, gt_dict
 
-
-class Implicit3DWrapper(torch.utils.data.Dataset):
-    def __init__(self, dataset, sidelength=None, sample_fraction=1.):
-
-        if isinstance(sidelength, int):
-            sidelength = 3 * (sidelength,)
-
-        self.dataset = dataset
-        self.mgrid = get_mgrid(sidelength, dim=3)
-        data = (torch.from_numpy(self.dataset[0]) - 0.5) / 0.5
-        self.data = data.view(-1, self.dataset.channels)
-        self.sample_fraction = sample_fraction
-        self.N_samples = int(self.sample_fraction * self.mgrid.shape[0])
-
-    def __len__(self):
-        return len(self.dataset)
-
-    def __getitem__(self, idx):
-        if self.sample_fraction < 1.:
-            coord_idx = torch.randint(0, self.data.shape[0], (self.N_samples,))
-            data = self.data[coord_idx, :]
-            coords = self.mgrid[coord_idx, :]
-        else:
-            coords = self.mgrid
-            data = self.data
-
-        in_dict = {'idx': idx, 'coords': coords}
-        gt_dict = {'img': data}
-
-        return in_dict, gt_dict
 
 
 # in_folder: where to find the data (train, val, test)
