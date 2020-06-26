@@ -55,7 +55,7 @@ To monitor progress, the training code writes tensorboard summaries into a "summ
 ### Image experiments
 The image experiment can be reproduced with
 ```
-python experiment_scipts/train_img.py --model_type=sine
+python experiment_scripts/train_img.py --model_type=sine
 ```
 The figures in the paper were made by extracting images from the tensorboard summaries. Example code how to do this can
 be found in the make_figures.py script.
@@ -65,7 +65,7 @@ This github repository comes with both the "counting" and "bach" audio clips und
 
 They can be trained with
 ```
-python experiment_scipts/train_audio.py --model_type=sine --audio_path=<path_to_audio_file>
+python experiment_scipts/train_audio.py --model_type=sine --wav_path=<path_to_audio_file>
 ```
 
 ### Video experiments
