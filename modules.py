@@ -5,6 +5,7 @@ from torchmeta.modules.utils import get_subdict
 import numpy as np
 from collections import OrderedDict
 import math
+import torch.nn.functional as F
 
 
 class BatchLinear(nn.Linear, MetaModule):
