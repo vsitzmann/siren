@@ -106,6 +106,8 @@ and creates the mesh saved in a .ply file format. It can be called with:
 python experiments_scripts/test_single_sdf.py --checkpoint_path=<path_to_the_checkpoint_of_the_trained_model> --experiment_name=experiment_1_rec 
 ```
 This will save the .ply file as "reconstruction.ply" in "experiment_1_rec" (be patient, the marching cube meshing step takes some time ;) )
+In the event the machine you use for the reconstruction does not have enough RAM, running test_sdf script will likely freeze. If this is the case, 
+please use the option --resolution=512 in the command line above (set to 1600 by default) that will reconstruct the mesh at a lower spatial resolution.
 
 The .ply file can be visualized using a software such as [Meshlab](https://www.meshlab.net/#download) (a cross-platform visualizer and editor for 3D models).
 
