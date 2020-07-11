@@ -26,6 +26,7 @@ p.add_argument('--model_type', type=str, default='sine',
                help='Options are "sine" (all sine activations) and "mixed" (first layer sine, other layers tanh)')
 p.add_argument('--mode', type=str, default='mlp',
                help='Options are "mlp" or "nerf"')
+p.add_argument('--resolution', type=int, default=1600)
 
 opt = p.parse_args()
 
@@ -51,4 +52,4 @@ sdf_decoder = SDFDecoder()
 root_path = os.path.join(opt.logging_root, opt.experiment_name)
 utils.cond_mkdir(root_path)
 
-sdf_meshing.create_mesh(sdf_decoder, os.path.join(root_path, 'test'), N=1600)
+sdf_meshing.create_mesh(sdf_decoder, os.path.join(root_path, 'test'), N=opt.resolution)
