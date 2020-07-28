@@ -25,6 +25,9 @@ installing anything, and goes through the following experiments / SIREN properti
 * Distribution of activations is shift-invariant
 * Periodicity & behavior outside of the training range. 
 
+## Tensorflow Playground
+You can also play arond with a tiny SIREN interactively, directly in the browser, via the Tensorflow Playground [here](https://dcato98.github.io/playground). Thanks to [David Cato](https://github.com/dcato98) for implementing this! 
+
 ## Get started
 If you want to reproduce all the results (including the baselines) shown in the paper, the videos, point clouds, and 
 audio files can be found [here](https://drive.google.com/drive/folders/1_iq__37-hw7FJOEUK1tX7mdp8SKB368K?usp=sharing).
