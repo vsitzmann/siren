@@ -96,7 +96,7 @@ for download here.
 
 To start training a SIREN, run:
 ```
-python experiments_scripts/train_single_sdf.py --model_type=sine --point_cloud_path=<path_to_the_model_in_xyz_format> --batch_size=250000 --experiment_name=experiment_1
+python experiments_scripts/train_sdf.py --model_type=sine --point_cloud_path=<path_to_the_model_in_xyz_format> --batch_size=250000 --experiment_name=experiment_1
 ```
 This will regularly save checkpoints in the directory specified by the rootpath in the script, in a subdirectory "experiment_1". 
 The batch_size is typically adjusted to fit in the entire memory of your GPU. 
@@ -106,7 +106,7 @@ To inspect a SDF fitted to a 3D point cloud, we now need to create a mesh from t
 This is performed with another script that uses a marching cubes algorithm (adapted from the DeepSDF github repo) 
 and creates the mesh saved in a .ply file format. It can be called with:
 ```
-python experiments_scripts/test_single_sdf.py --checkpoint_path=<path_to_the_checkpoint_of_the_trained_model> --experiment_name=experiment_1_rec 
+python experiments_scripts/test_sdf.py --checkpoint_path=<path_to_the_checkpoint_of_the_trained_model> --experiment_name=experiment_1_rec
 ```
 This will save the .ply file as "reconstruction.ply" in "experiment_1_rec" (be patient, the marching cube meshing step takes some time ;) )
 In the event the machine you use for the reconstruction does not have enough RAM, running test_sdf script will likely freeze. If this is the case, 
