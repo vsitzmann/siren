@@ -68,7 +68,7 @@ This github repository comes with both the "counting" and "bach" audio clips und
 
 They can be trained with
 ```
-python experiment_scipts/train_audio.py --model_type=sine --wav_path=<path_to_audio_file>
+python experiment_scripts/train_audio.py --model_type=sine --wav_path=<path_to_audio_file>
 ```
 
 ### Video experiments
@@ -77,7 +77,7 @@ link above.
 
 To fit a model to a video, run
 ```
-python experiment_scipts/train_video.py --model_type=sine --experiment_name bikes_video
+python experiment_scripts/train_video.py --model_type=sine --experiment_name bikes_video
 ```
 
 ### Poisson experiments
