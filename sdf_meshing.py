@@ -96,7 +96,7 @@ def convert_sdf_samples_to_ply(
 
     verts, faces, normals, values = np.zeros((0, 3)), np.zeros((0, 3)), np.zeros((0, 3)), np.zeros(0)
     try:
-        verts, faces, normals, values = skimage.measure.marching_cubes_lewiner(
+        verts, faces, normals, values = skimage.measure.marching_cubes(
             numpy_3d_sdf_tensor, level=0.0, spacing=[voxel_size] * 3
         )
     except:
